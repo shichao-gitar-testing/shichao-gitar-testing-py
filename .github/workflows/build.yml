@@ -8,6 +8,12 @@ on:
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+# Least privilege for GITHUB_TOKEN: the scan only reads the checkout.
+# Pull request decoration is posted by the SonarQube Cloud app, not by
+# this token, so no write scope is needed here.
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build and analyze
