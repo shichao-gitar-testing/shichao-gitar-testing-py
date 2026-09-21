@@ -1,6 +1,7 @@
 .claude/
 .vscode/
 .sonarlint/
+.kiro/
 
 # Personal settings: contains your home coordinates. Use the sample instead.
 settings.json
