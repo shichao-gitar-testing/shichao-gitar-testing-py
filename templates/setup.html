@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Set your location{% endblock %}
+
+{% block body %}
+<main class="setup">
+  <header class="setup__header">
+    <div class="setup__glyph" aria-hidden="true">&#127773;</div>
+    <h1>Where are you?</h1>
+    <p class="setup__lead">
+      This becomes your default location. You can add more places and create
+      other views once you are set up.
+    </p>
+  </header>
+
+  <section class="setup__panel">
+    <button id="detect" class="button button--primary button--block" type="button">
+      Use my current location
+    </button>
+    <p id="detect-status" class="status" role="status" aria-live="polite"></p>
+
+    <div class="setup__divider"><span>or search for a place</span></div>
+
+    <label class="field">
+      <span class="field__label" for="search">Town, city or region</span>
+      <input id="search" class="field__input" type="search" autocomplete="off"
+             placeholder="e.g. Krakow, Reykjavik, Sydney" spellcheck="false">
+    </label>
+    <ul id="results" class="results" role="listbox" aria-label="Search results"></ul>
+  </section>
+
+  <section id="chosen" class="setup__chosen" hidden>
+    <h2 class="setup__chosen-title">Selected location</h2>
+    <p id="chosen-name" class="setup__chosen-name"></p>
+    <p id="chosen-coords" class="setup__chosen-coords"></p>
+
+    <label class="field">
+      <span class="field__label" for="view-name">Name this view</span>
+      <input id="view-name" class="field__input" type="text" value="Home" maxlength="60">
+    </label>
+
+    <button id="confirm" class="button button--primary button--block" type="button">
+      Save and continue
+    </button>
+    <p id="confirm-status" class="status" role="status" aria-live="polite"></p>
+  </section>
+
+  {% if already_configured %}
+  <p class="setup__escape"><a href="{{ url_for('index') }}">Back to my dashboard</a></p>
+  {% endif %}
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/setup.js') }}"></script>
+{% endblock %}

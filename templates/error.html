@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ code }}{% endblock %}
+
+{% block body %}
+<main class="setup">
+  <header class="setup__header">
+    <div class="setup__glyph" aria-hidden="true">&#127761;</div>
+    <h1>{{ code }}</h1>
+    <p class="setup__lead">{{ message }}</p>
+  </header>
+  <p class="setup__escape"><a href="{{ url_for('index') }}">Back to my dashboard</a></p>
+</main>
+{% endblock %}

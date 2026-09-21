@@ -1,0 +1,27 @@
+.claude/
+.vscode/
+.sonarlint/
+
+# Personal settings: contains your home coordinates. Use the sample instead.
+settings.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+coverage.xml
+junit-report.xml
+htmlcov/
+
+# Node
+node_modules/
+coverage-js/
+
+# OS noise
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+[tool.pytest.ini_options]
+testpaths = ["test_app.py"]
+
+[tool.coverage.run]
+# Explicit module list so coverage measures the application only, not the
+# test file or anything living in .venv.
+source = ["app", "astro", "providers", "services", "settings"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.coverage.xml]
+output = "coverage.xml"

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}Weather &amp; Eclipses{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#127773;</text></svg>">
+</head>
+<body>
+  <div class="page">
+    {% block body %}{% endblock %}
+  </div>
+  <footer class="footer">
+    <span>Weather by <a href="https://open-meteo.com" rel="noreferrer noopener" target="_blank">Open-Meteo</a>.
+    Eclipse and sun times computed locally.</span>
+  </footer>
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

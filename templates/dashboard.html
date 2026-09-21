@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}{{ view.name }} &middot; Weather &amp; Eclipses{% endblock %}
+
+{% block body %}
+<header class="topbar">
+  <div class="topbar__row">
+    <h1 class="topbar__title">
+      {{ view.name }}
+      {% if view.id == default_view_id %}<span class="badge" title="This is your default view">default</span>{% endif %}
+    </h1>
+    <div class="topbar__actions">
+      <button class="button button--ghost" type="button" data-open="settings-dialog">Units</button>
+      <button class="button button--ghost" type="button" data-open="views-dialog">Manage views</button>
+      <button class="button button--primary" type="button" data-open="add-location-dialog">Add location</button>
+    </div>
+  </div>
+
+  <nav class="viewtabs" aria-label="Saved views">
+    {% for item in views %}
+      <a class="viewtab {% if item.id == view.id %}viewtab--active{% endif %}"
+         href="{{ url_for('show_view', view_id=item.id) }}">
+        {{ item.name }}
+        <span class="viewtab__count">{{ item.location_count }}</span>
+      </a>
+    {% endfor %}
+    <button class="viewtab viewtab--new" type="button" data-open="new-view-dialog">+ New view</button>
+  </nav>
+</header>
+
+<main id="cards" class="cards"
+      data-view-id="{{ view.id }}"
+      data-location-count="{{ view.locations | length }}">
+  {% if not view.locations %}
+    <p class="empty">
+      This view has no locations yet.
+      <button class="link" type="button" data-open="add-location-dialog">Add one</button>.
+    </p>
+  {% else %}
+    {% for location in view.locations %}
+      <article class="card card--loading" data-location-id="{{ location.id }}">
+        <header class="card__head">
+          <h2 class="card__title">{{ location.name }}</h2>
+        </header>
+        <p class="card__loading">Loading weather and eclipse data&hellip;</p>
+      </article>
+    {% endfor %}
+  {% endif %}
+</main>
+
+<p id="refresh-line" class="refresh-line">
+  <button id="refresh" class="link" type="button">Refresh</button>
+  <span id="generated-at"></span>
+</p>
+
+<!-- Add location -->
+<dialog id="add-location-dialog" class="dialog">
+  <form method="dialog" class="dialog__form">
+    <h2 class="dialog__title">Add a location to “{{ view.name }}”</h2>
+    <label class="field">
+      <span class="field__label" for="add-search">Search for a place</span>
+      <input id="add-search" class="field__input" type="search" autocomplete="off"
+             placeholder="Town, city or region" spellcheck="false">
+    </label>
+    <ul id="add-results" class="results" role="listbox" aria-label="Search results"></ul>
+    <button id="add-use-current" class="button button--ghost button--block" type="button">
+      Use my current location
+    </button>
+    <p id="add-status" class="status" role="status" aria-live="polite"></p>
+    <div class="dialog__actions">
+      <button class="button button--ghost" value="cancel">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Manage views -->
+<dialog id="views-dialog" class="dialog">
+  <form method="dialog" class="dialog__form">
+    <h2 class="dialog__title">Manage views</h2>
+
+    <section class="dialog__section">
+      <h3 class="dialog__subtitle">This view</h3>
+      <label class="field">
+        <span class="field__label" for="rename-input">Name</span>
+        <input id="rename-input" class="field__input" type="text"
+               value="{{ view.name }}" maxlength="60">
+      </label>
+      <div class="dialog__buttonrow">
+        <button id="rename-save" class="button button--primary" type="button">Save name</button>
+        {% if view.id != default_view_id %}
+        <button id="make-default" class="button button--ghost" type="button">Make default</button>
+        {% endif %}
+        {% if views | length > 1 %}
+        <button id="delete-view" class="button button--danger" type="button">Delete view</button>
+        {% endif %}
+      </div>
+
+      <h3 class="dialog__subtitle">Locations in this view</h3>
+      <ul id="location-list" class="locationlist">
+        {% for location in view.locations %}
+        <li class="locationlist__item" data-location-id="{{ location.id }}">
+          <span class="locationlist__name">
+            {{ location.name }}
+            {% if location.country %}<span class="locationlist__meta">{{ location.country }}</span>{% endif %}
+          </span>
+          <button class="button button--small button--danger" type="button"
+                  data-remove-location="{{ location.id }}">Remove</button>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if not view.locations %}
+        <p class="dialog__hint">No locations yet.</p>
+      {% endif %}
+    </section>
+
+    <section class="dialog__section">
+      <h3 class="dialog__subtitle">All views</h3>
+      <ul class="viewlist">
+        {% for item in views %}
+        <li class="viewlist__item">
+          <a href="{{ url_for('show_view', view_id=item.id) }}">{{ item.name }}</a>
+          <span class="viewlist__meta">
+            {{ item.location_count }} location{{ '' if item.location_count == 1 else 's' }}
+            {% if item.is_default %}&middot; default{% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+      <button class="button button--ghost" type="button" data-open="new-view-dialog">Create a new view</button>
+    </section>
+
+    <p id="views-status" class="status" role="status" aria-live="polite"></p>
+    <div class="dialog__actions">
+      <button class="button button--ghost" value="cancel">Close</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- New view -->
+<dialog id="new-view-dialog" class="dialog">
+  <form method="dialog" class="dialog__form">
+    <h2 class="dialog__title">Create a new view</h2>
+    <label class="field">
+      <span class="field__label" for="new-view-name">Name</span>
+      <input id="new-view-name" class="field__input" type="text"
+             placeholder="e.g. Eclipse trip 2027" maxlength="60">
+    </label>
+    <label class="checkbox">
+      <input id="new-view-copy" type="checkbox">
+      <span>Start with the {{ view.locations | length }} location{{ '' if view.locations | length == 1 else 's' }} from “{{ view.name }}”</span>
+    </label>
+    <label class="checkbox">
+      <input id="new-view-default" type="checkbox">
+      <span>Make this my default view</span>
+    </label>
+    <p id="new-view-status" class="status" role="status" aria-live="polite"></p>
+    <div class="dialog__actions">
+      <button class="button button--ghost" value="cancel">Cancel</button>
+      <button id="new-view-create" class="button button--primary" type="button">Create view</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Units -->
+<dialog id="settings-dialog" class="dialog">
+  <form method="dialog" class="dialog__form">
+    <h2 class="dialog__title">Units and formats</h2>
+    <label class="field">
+      <span class="field__label" for="pref-temperature">Temperature</span>
+      <select id="pref-temperature" class="field__input">
+        <option value="celsius" {{ 'selected' if preferences.temperature_unit == 'celsius' }}>Celsius</option>
+        <option value="fahrenheit" {{ 'selected' if preferences.temperature_unit == 'fahrenheit' }}>Fahrenheit</option>
+      </select>
+    </label>
+    <label class="field">
+      <span class="field__label" for="pref-wind">Wind speed</span>
+      <select id="pref-wind" class="field__input">
+        <option value="kmh" {{ 'selected' if preferences.wind_speed_unit == 'kmh' }}>km/h</option>
+        <option value="mph" {{ 'selected' if preferences.wind_speed_unit == 'mph' }}>mph</option>
+        <option value="ms" {{ 'selected' if preferences.wind_speed_unit == 'ms' }}>m/s</option>
+        <option value="kn" {{ 'selected' if preferences.wind_speed_unit == 'kn' }}>knots</option>
+      </select>
+    </label>
+    <label class="field">
+      <span class="field__label" for="pref-time">Clock</span>
+      <select id="pref-time" class="field__input">
+        <option value="24h" {{ 'selected' if preferences.time_format == '24h' }}>24 hour</option>
+        <option value="12h" {{ 'selected' if preferences.time_format == '12h' }}>12 hour</option>
+      </select>
+    </label>
+    <p id="settings-status" class="status" role="status" aria-live="polite"></p>
+    <div class="dialog__actions">
+      <button class="button button--ghost" value="cancel">Close</button>
+      <button id="settings-save" class="button button--primary" type="button">Save</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

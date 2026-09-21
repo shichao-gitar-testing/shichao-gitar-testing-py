@@ -1,0 +1,68 @@
+{
+  "_comment": [
+    "Example settings file. Copy to settings.json to pre-seed the app, or just",
+    "run the app and let the first-run screen create it for you.",
+    "settings.json is git-ignored because it holds your home coordinates.",
+    "",
+    "version            schema version, currently 1",
+    "secret_key         generated automatically on first run and used to sign",
+    "                   the session cookie carrying the CSRF token; omit it",
+    "                   here and never copy one between installations",
+    "setup_complete     set to true once at least one view exists",
+    "default_view_id    id of the view shown when you open the app",
+    "views[]            each view is a named set of locations shown together",
+    "views[].locations  latitude and longitude are required; the rest is",
+    "                   optional and is filled in automatically when you add a",
+    "                   location through the interface"
+  ],
+  "version": 1,
+  "setup_complete": true,
+  "default_view_id": "home",
+  "preferences": {
+    "temperature_unit": "celsius",
+    "wind_speed_unit": "kmh",
+    "time_format": "24h"
+  },
+  "views": [
+    {
+      "id": "home",
+      "name": "Home",
+      "locations": [
+        {
+          "id": "krakow",
+          "name": "Kraków",
+          "country": "Poland",
+          "admin1": "Lesser Poland",
+          "latitude": 50.06143,
+          "longitude": 19.93658,
+          "timezone": "Europe/Warsaw",
+          "elevation": 219,
+          "source": "geolocation"
+        }
+      ]
+    },
+    {
+      "id": "eclipse-trip",
+      "name": "Eclipse trip 2027",
+      "locations": [
+        {
+          "id": "luxor",
+          "name": "Luxor",
+          "country": "Egypt",
+          "latitude": 25.6872,
+          "longitude": 32.6396,
+          "timezone": "Africa/Cairo"
+        },
+        {
+          "id": "tarifa",
+          "name": "Tarifa",
+          "country": "Spain",
+          "admin1": "Andalusia",
+          "latitude": 36.0143,
+          "longitude": -5.6044,
+          "timezone": "Europe/Madrid"
+        }
+      ]
+    }
+  ]
+}
