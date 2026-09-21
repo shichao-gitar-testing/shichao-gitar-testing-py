@@ -138,6 +138,21 @@ npm test           # or: npm run coverage
 `sonar.javascript.lcov.reportPaths`. No lockfile is committed, so CI uses
 `npm install` rather than `npm ci`.
 
+### Analysis in SonarQube Cloud
+
+Analysis runs in CI (`.github/workflows/build.yml`), not via SonarQube Cloud's
+Automatic Analysis: automatic analysis cannot import coverage reports, so the
+workflow runs both test suites first and the scanner picks up `coverage.xml`
+and `coverage-js/lcov.info` afterwards. Two consequences worth knowing:
+
+- **Automatic Analysis must stay OFF** for this project (Administration >
+  Analysis Method in SonarQube Cloud). If it is on, the CI analysis is
+  rejected.
+- The repository needs a `SONAR_TOKEN` Actions secret. `sonar.projectKey` and
+  `sonar.organization` are not secrets and live in `sonar-project.properties`;
+  `SONAR_HOST_URL` must stay unset, or the scan targets a SonarQube Server
+  instead of SonarQube Cloud.
+
 ## Layout
 
 ```
