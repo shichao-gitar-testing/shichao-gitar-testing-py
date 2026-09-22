@@ -25,6 +25,41 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      # Diagnose SonarQube auth without ever revealing the token. This prints
+      # the secret's integrity (present / length / whitespace / hash prefix)
+      # and calls the SonarQube Cloud API to report the real reason auth is
+      # accepted or rejected. It never echoes the token value itself.
+      - name: Diagnose SonarQube authentication
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -z "${SONAR_TOKEN}" ]; then
+            echo "::error::SONAR_TOKEN secret is empty or not set for this ref."
+            exit 1
+          fi
+          # Fingerprint only -- length, whitespace check and a SHA-256 prefix.
+          # None of these reveal the token; they let you confirm it was pasted
+          # intact (no truncation, no stray newline/space).
+          printf '%s' "${SONAR_TOKEN}" | wc -c | awk '{print "token byte length: "$1}'
+          case "${SONAR_TOKEN}" in
+            *[[:space:]]*) echo "WARNING: token contains whitespace (likely a stray newline/space in the secret)";;
+            *) echo "token has no embedded whitespace";;
+          esac
+          printf '%s' "${SONAR_TOKEN}" | sha256sum | cut -c1-12 | awk '{print "token sha256 prefix: "$1}'
+          # Independent auth check against SonarQube Cloud (EU). Prints HTTP
+          # status and the API's own message, not the token. 200 => token is
+          # valid; 401 => bad/expired token; 403 => valid token, missing
+          # permission/wrong org.
+          echo "--- GET /api/authentication/validate ---"
+          curl -sS -o /tmp/validate.json -w 'HTTP %{http_code}\n' \
+            -u "${SONAR_TOKEN}:" https://sonarcloud.io/api/authentication/validate || true
+          cat /tmp/validate.json; echo
+          echo "--- GET /api/organizations/search (does token see the org?) ---"
+          curl -sS -o /tmp/orgs.json -w 'HTTP %{http_code}\n' \
+            -u "${SONAR_TOKEN}:" \
+            "https://sonarcloud.io/api/organizations/search?organizations=onboarding-team-hunter-testing" || true
+          cat /tmp/orgs.json; echo
+
       # No tests are run and no dependencies are installed in CI. The pipeline
       # only checks out the code and runs the SonarQube scan; coverage and
       # test-execution reports are committed to the repository and picked up by
