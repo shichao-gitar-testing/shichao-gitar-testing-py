@@ -6,6 +6,9 @@ testpaths = ["test_app.py"]
 # test file or anything living in .venv.
 source = ["app", "astro", "providers", "services", "settings"]
 branch = true
+# Relative paths in coverage.xml, so the report resolves against the
+# checkout on a CI runner rather than an absolute local path.
+relative_files = true
 
 [tool.coverage.report]
 show_missing = true

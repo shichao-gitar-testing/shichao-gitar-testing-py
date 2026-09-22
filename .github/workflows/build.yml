@@ -1,0 +1,61 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+# Least privilege for GITHUB_TOKEN: the scan only reads the checkout.
+# Pull request decoration is posted by the SonarQube Cloud app, not by
+# this token, so no write scope is needed here.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.10'
+          cache: pip
+      - name: Install dependencies
+        # Use --upgrade to ensure we get the latest allowed versions from
+        # requirements.txt, including urllib3 2.7.0+ which fixes CVE-2026-44432.
+        run: python -m pip install --upgrade --only-binary :all: -r requirements.txt
+      - name: Run tests with coverage
+        run: |
+          python -m pytest \
+            --cov \
+            --cov-report=xml \
+            --cov-report=term \
+            --junitxml=junit-report.xml
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '20'
+      - name: Install front-end dependencies
+        run: npm ci --ignore-scripts
+      - name: Run front-end tests with coverage
+        run: npm run coverage
+      # Fail loudly here rather than letting the scan silently report no
+      # coverage: SonarQube Cloud treats a missing report as 0% new code
+      # coverage, which is easy to mistake for untested code.
+      - name: Check coverage reports exist
+        run: |
+          test -s coverage.xml || { echo "::error::coverage.xml missing or empty"; exit 1; }
+          test -s coverage-js/lcov.info || { echo "::error::coverage-js/lcov.info missing or empty"; exit 1; }
+      # SonarQube Cloud: SONAR_TOKEN only. SONAR_HOST_URL is deliberately
+      # unset -- the scanner defaults to SonarQube Cloud, and setting it would
+      # point the scan back at a SonarQube Server. The project key and
+      # organization come from sonar-project.properties.
+      - uses: SonarSource/sonarqube-scan-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v8.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
