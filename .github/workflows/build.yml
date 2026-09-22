@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: '20'
       - name: Install front-end dependencie
-        run: npm ci --ignore-script
+        run: npm ci --ignore-scripts
       - name: Run front-end tests with coverage
         run: npm run coverage
       # Fail loudly here rather than letting the scan silently report no
