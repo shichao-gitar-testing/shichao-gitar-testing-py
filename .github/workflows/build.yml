@@ -30,7 +30,8 @@ jobs:
       - name: Install dependencies
         # Use lockfile for reproducible builds and --only-binary :all: to prevent
         # arbitrary setup script execution from source distributions.
-        run: python -m pip install --only-binary :all: -r requirements.lock.txt
+        run: |
+          python -m pip install --only-binary :all: -r requirements.lock.txt
       - name: Run tests with coverage
         run: |
           python -m pytest \
