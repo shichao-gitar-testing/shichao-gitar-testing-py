@@ -30,9 +30,13 @@ jobs:
           python-version: '3.10'
           cache: pip
       - name: Install dependencies
-        # Use --upgrade to ensure we get the latest allowed versions from
-        # requirements.txt, including urllib3 2.7.0+ which fixes CVE-2026-44432.
-        run: "python -m pip install --upgrade --only-binary :all: -r requirements.txt"
+        # Install from the fully pinned, hashed lock file with --require-hashes
+        # so every resolved version (runtime and test tooling) is verified
+        # against its recorded hash, closing the door on dependency
+        # substitution. Regenerate requirements.lock.txt with pip-compile when
+        # bumping versions. --only-binary :all: keeps installs from building
+        # source distributions.
+        run: "python -m pip install --require-hashes --only-binary :all: -r requirements.lock.txt"
       - name: Run tests with coverage
         run: |
           python -m pytest \
