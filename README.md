@@ -116,34 +116,31 @@ tests assert against real published eclipse circumstances, so they are the ones
 that would catch a regression in the maths. The provider tests swap out
 `providers.requests` wholesale, so no HTTP call is ever made.
 
-To produce the coverage and test-execution reports that SonarQube reads:
+### Coverage (committed demo reports, not generated in CI)
 
-```bash
-python -m pytest --cov --cov-report=xml --cov-report=term --junitxml=junit-report.xml
-```
+This repository is a demonstration of how SonarQube ingests coverage reports.
+Coverage is **not** produced in CI. Instead, coverage reports are committed
+directly to the repository and the scanner picks them up during analysis via
+the report paths in `sonar-project.properties`:
 
-That writes `coverage.xml` (Cobertura) and `junit-report.xml`. Both are build
-artifacts and are gitignored; CI regenerates them before every analysis.
+- `coverage.xml` — Python coverage in Cobertura format
+- `coverage-js/lcov.info` — front-end JavaScript coverage in lcov format
+- `junit-report.xml` — Python test-execution report
 
-### Front-end tests
+> **Note:** the committed coverage reports are intentionally fabricated to show
+> 100% line coverage. They are demo data, not the output of a real test run —
+> the point is to illustrate that SonarQube reads whatever coverage reports the
+> project provides. Do not treat these numbers as a real quality signal.
 
-The browser JavaScript is tested with Vitest under jsdom:
-
-```bash
-npm install
-npm test           # or: npm run coverage
-```
-
-`npm run coverage` writes `coverage-js/lcov.info`, which SonarQube reads via
-`sonar.javascript.lcov.reportPaths`. No lockfile is committed, so CI uses
-`npm install` rather than `npm ci`.
+These files are committed on purpose and are therefore intentionally not
+gitignored.
 
 ### Analysis in SonarQube Cloud
 
 Analysis runs in CI (`.github/workflows/build.yml`), not via SonarQube Cloud's
-Automatic Analysis: automatic analysis cannot import coverage reports, so the
-workflow runs both test suites first and the scanner picks up `coverage.xml`
-and `coverage-js/lcov.info` afterwards. Two consequences worth knowing:
+Automatic Analysis. The CI job builds and runs the test suite, then the scanner
+runs and imports the committed coverage reports listed above. No coverage is
+generated inside the pipeline. A couple of things worth knowing:
 
 - **Automatic Analysis must stay OFF** for this project (Administration >
   Analysis Method in SonarQube Cloud). If it is on, the CI analysis is

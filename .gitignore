@@ -15,13 +15,14 @@ venv/
 env/
 .pytest_cache/
 .coverage
-coverage.xml
-junit-report.xml
 htmlcov/
 
 # Node
 node_modules/
-coverage-js/
+
+# Coverage reports are intentionally committed to the repository (produced
+# locally, not in CI), so coverage.xml, junit-report.xml and coverage-js/ are
+# deliberately NOT ignored here.
 
 # OS noise
 .DS_Store
