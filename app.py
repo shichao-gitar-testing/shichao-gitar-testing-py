@@ -271,7 +271,7 @@ def api_detect_location():
     return jsonify({"ok": True, "place": place})
 
 
-@app.route("/api/location")
+@app.route("/api/location", methods=["GET"])
 def api_location():
     """Get all weather and eclipse information for a location by city and country.
     
