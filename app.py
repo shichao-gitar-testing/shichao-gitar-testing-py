@@ -323,76 +323,101 @@ def api_location():
 
 def _format_as_text(payload):
     """Format location data as plain text."""
-    lines = []
-    lines.append("=" * 50)
-    lines.append(f"Location: {payload.get('name')}, {payload.get('country')}")
-    lines.append("=" * 50)
-    lines.append(f"Coordinates: {payload.get('latitude')}, {payload.get('longitude')}")
-    lines.append(f"Timezone: {payload.get('timezone')}")
-    lines.append("")
-    
+    lines = [
+        "=" * 50,
+        f"Location: {payload.get('name')}, {payload.get('country')}",
+        "=" * 50,
+        f"Coordinates: {payload.get('latitude')}, {payload.get('longitude')}",
+        f"Timezone: {payload.get('timezone')}",
+        "",
+    ]
+
     # Weather
     weather = payload.get("weather")
     if weather:
-        lines.append("CURRENT WEATHER")
-        lines.append("-" * 30)
-        lines.append(f"Temperature: {weather.get('temperature')}{payload.get('units', {}).get('temperature', '')}")
-        lines.append(f"Feels like: {weather.get('apparent_temperature')}{payload.get('units', {}).get('temperature', '')}")
-        lines.append(f"Condition: {weather.get('condition', {}).get('label', 'N/A')}")
-        lines.append(f"Humidity: {weather.get('humidity')}%")
-        lines.append(f"Wind: {weather.get('wind_speed')} {payload.get('units', {}).get('wind_speed', '')} {weather.get('wind_compass', '')}")
-        lines.append(f"Wind gusts: {weather.get('wind_gusts')} {payload.get('units', {}).get('wind_speed', '')}")
-        lines.append(f"Cloud cover: {weather.get('cloud_cover')}%")
-        lines.append(f"Pressure: {weather.get('pressure')} hPa")
-        lines.append(f"Precipitation: {weather.get('precipitation')} mm")
-        lines.append(f"Observed at: {weather.get('observed_at')}")
-        lines.append("")
-    
+        units = payload.get("units", {})
+        lines.extend([
+            "CURRENT WEATHER",
+            "-" * 30,
+            f"Temperature: {weather.get('temperature')}{units.get('temperature', '')}",
+            f"Feels like: {weather.get('apparent_temperature')}{units.get('temperature', '')}",
+            f"Condition: {weather.get('condition', {}).get('label', 'N/A')}",
+            f"Humidity: {weather.get('humidity')}%",
+            f"Wind: {weather.get('wind_speed')} {units.get('wind_speed', '')} {weather.get('wind_compass', '')}",
+            f"Wind gusts: {weather.get('wind_gusts')} {units.get('wind_speed', '')}",
+            f"Cloud cover: {weather.get('cloud_cover')}%",
+            f"Pressure: {weather.get('pressure')} hPa",
+            f"Precipitation: {weather.get('precipitation')} mm",
+            f"Observed at: {weather.get('observed_at')}",
+            "",
+        ])
+
     # Today's forecast
     today = payload.get("today")
     if today:
-        lines.append("TODAY'S FORECAST")
-        lines.append("-" * 30)
-        lines.append(f"Sunrise: {today.get('sunrise')}")
-        lines.append(f"Sunset: {today.get('sunset')}")
-        lines.append(f"Day length: {today.get('day_length')}")
-        lines.append(f"UV Index: {today.get('uv_index_max')}")
-        lines.append(f"Temp range: {today.get('temp_min')} - {today.get('temp_max')}{payload.get('units', {}).get('temperature', '')}")
-        lines.append(f"Precipitation: {today.get('precipitation_sum')} mm")
-        lines.append("")
-    
+        units = payload.get("units", {})
+        lines.extend([
+            "TODAY'S FORECAST",
+            "-" * 30,
+            f"Sunrise: {today.get('sunrise')}",
+            f"Sunset: {today.get('sunset')}",
+            f"Day length: {today.get('day_length')}",
+            f"UV Index: {today.get('uv_index_max')}",
+            f"Temp range: {today.get('temp_min')} - {today.get('temp_max')}{units.get('temperature', '')}",
+            f"Precipitation: {today.get('precipitation_sum')} mm",
+            "",
+        ])
+
     # Eclipse
     eclipse = payload.get("eclipse")
     if eclipse:
-        lines.append("NEXT SOLAR ECLIPSE")
-        lines.append("-" * 30)
-        lines.append(f"Type: {eclipse.get('type_label')}")
-        lines.append(f"Date: {eclipse.get('date_label')} ({eclipse.get('date')})")
-        lines.append(f"Days away: {eclipse.get('days_away')}")
-        lines.append(f"Years away: {eclipse.get('years_away')}")
-        lines.append(f"Magnitude: {eclipse.get('magnitude')}")
-        lines.append(f"Obscuration: {eclipse.get('obscuration_percent')}%")
-        lines.append(f"Sun position: {eclipse.get('sun_compass')} at {eclipse.get('sun_altitude')}°")
-        times = eclipse.get("times", {})
-        lines.append("Contact times:")
-        lines.append(f"  First contact: {times.get('first_contact')}")
-        lines.append(f"  Maximum: {times.get('maximum')}")
-        lines.append(f"  Last contact: {times.get('last_contact')}")
-        if times.get("central_start"):
-            lines.append(f"  Central start: {times.get('central_start')}")
-            lines.append(f"  Central end: {times.get('central_end')}")
-        lines.append(f"Partial duration: {eclipse.get('partial_duration')}")
-        if eclipse.get("central_duration"):
-            lines.append(f"Central duration: {eclipse.get('central_duration')}")
-        lines.append(f"Timezone: {eclipse.get('timezone')}")
-        sun_events = eclipse.get("sun_events", {})
-        lines.append(f"Sunrise on eclipse day: {sun_events.get('sunrise')}")
-        lines.append(f"Sunset on eclipse day: {sun_events.get('sunset')}")
-        lines.append(f"Day length on eclipse day: {sun_events.get('day_length')}")
+        lines.extend(_text_eclipse_section(eclipse))
     else:
         lines.append("No upcoming solar eclipse visible from this location.")
-    
+
     return "\n".join(lines)
+
+
+def _text_eclipse_section(eclipse):
+    """Generate text for eclipse section."""
+    times = eclipse.get("times", {})
+    sun_events = eclipse.get("sun_events", {})
+
+    lines = [
+        "NEXT SOLAR ECLIPSE",
+        "-" * 30,
+        f"Type: {eclipse.get('type_label')}",
+        f"Date: {eclipse.get('date_label')} ({eclipse.get('date')})",
+        f"Days away: {eclipse.get('days_away')}",
+        f"Years away: {eclipse.get('years_away')}",
+        f"Magnitude: {eclipse.get('magnitude')}",
+        f"Obscuration: {eclipse.get('obscuration_percent')}%",
+        f"Sun position: {eclipse.get('sun_compass')} at {eclipse.get('sun_altitude')}°",
+        "Contact times:",
+        f"  First contact: {times.get('first_contact')}",
+        f"  Maximum: {times.get('maximum')}",
+        f"  Last contact: {times.get('last_contact')}",
+    ]
+
+    if times.get("central_start"):
+        lines.extend([
+            f"  Central start: {times.get('central_start')}",
+            f"  Central end: {times.get('central_end')}",
+        ])
+
+    lines.append(f"Partial duration: {eclipse.get('partial_duration')}")
+
+    if eclipse.get("central_duration"):
+        lines.append(f"Central duration: {eclipse.get('central_duration')}")
+
+    lines.extend([
+        f"Timezone: {eclipse.get('timezone')}",
+        f"Sunrise on eclipse day: {sun_events.get('sunrise')}",
+        f"Sunset on eclipse day: {sun_events.get('sunset')}",
+        f"Day length on eclipse day: {sun_events.get('day_length')}",
+    ])
+
+    return lines
 
 
 def _format_as_xml(payload):
