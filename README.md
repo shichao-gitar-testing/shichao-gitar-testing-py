@@ -163,3 +163,136 @@ templates/, static/    server-rendered shell, one CSS file, three JS files
 
 Weather is cached for 10 minutes and eclipse results until the date changes, so
 switching between views is quick and the upstream API is not hammered.
+
+## Simple Location API
+
+An unauthenticated API endpoint that returns all weather and eclipse information
+for a specific location.
+
+### Endpoint
+
+```
+GET /api/location
+```
+
+### Query Parameters
+
+| Parameter | Required | Description | Default |
+|-----------|----------|-------------|---------|
+| `city`    | Yes      | City name   | -       |
+| `country` | Yes      | Country name | -     |
+| `format`  | No       | Output format: `json`, `text`, or `xml` | `json` |
+
+### Rate Limiting
+
+The API is rate-limited to **1 request per second per client IP address**. If you
+make requests faster than this, the server will wait before processing your request.
+
+### Response
+
+Returns all information visible in the web UI for the specified location, including:
+- Current weather conditions (temperature, humidity, wind, etc.)
+- Today's forecast (sunrise, sunset, UV index, etc.)
+- Next solar eclipse information (date, times, magnitude, etc.)
+
+### Examples
+
+**JSON format (default):**
+```bash
+curl "http://127.0.0.1:5000/api/location?city=Krakow&country=Poland"
+```
+
+**Text format:**
+```bash
+curl "http://127.0.0.1:5000/api/location?city=Krakow&country=Poland&format=text"
+```
+
+**XML format:**
+```bash
+curl "http://127.0.0.1:5000/api/location?city=Krakow&country=Poland&format=xml"
+```
+
+### Sample Response (JSON)
+
+```json
+{
+  "ok": true,
+  "location": {
+    "id": "...",
+    "name": "Krakow",
+    "label": "Krakow, Lesser Poland, Poland",
+    "country": "Poland",
+    "admin1": "Lesser Poland",
+    "latitude": 50.06465,
+    "longitude": 19.94498,
+    "timezone": "Europe/Warsaw",
+    "units": {
+      "temperature": "°C",
+      "wind_speed": "km/h"
+    },
+    "weather": {
+      "temperature": 15,
+      "apparent_temperature": 14,
+      "humidity": 72,
+      "precipitation": 0.0,
+      "cloud_cover": 40,
+      "pressure": 1013.25,
+      "wind_speed": 12.0,
+      "wind_gusts": 18.0,
+      "wind_direction": 240,
+      "wind_compass": "WSW",
+      "is_day": true,
+      "code": 2,
+      "condition": {
+        "label": "Partly cloudy",
+        "icon": "cloud-sun"
+      },
+      "observed_at": "14:30"
+    },
+    "today": {
+      "date": "2026-10-06",
+      "sunrise": "06:50",
+      "sunset": "18:15",
+      "day_length": "11h 25m",
+      "temp_max": 18,
+      "temp_min": 10,
+      "uv_index_max": 3.0,
+      "precipitation_sum": 0.0,
+      "precipitation_probability": 10,
+      "forecast": [...]
+    },
+    "eclipse": {
+      "type": "total",
+      "type_label": "Total solar eclipse",
+      "is_central": true,
+      "date": "2027-08-12",
+      "date_label": "12 August 2027",
+      "days_away": 310,
+      "years_away": 0.8,
+      "magnitude": 1.014,
+      "obscuration_percent": 100,
+      "sun_altitude": 49.2,
+      "sun_azimuth": 156.4,
+      "sun_compass": "SSE",
+      "times": {
+        "first_contact": "09:25",
+        "maximum": "10:41:30",
+        "last_contact": "12:03",
+        "central_start": "10:40:15",
+        "central_end": "10:42:45"
+      },
+      "partial_duration": "2h 38m",
+      "central_duration": "2m 30s",
+      "sun_events": {
+        "sunrise": "05:54",
+        "sunset": "20:31",
+        "day_length": "14h 37m",
+        "polar_day": false,
+        "polar_night": false
+      },
+      "timezone": "Europe/Warsaw"
+    },
+    "errors": {}
+  }
+}
+```
